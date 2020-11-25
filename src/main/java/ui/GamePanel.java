@@ -21,11 +21,10 @@ final class GamePanel extends JPanel {
         super.paint(g);
         List<FieldObject> objects = applicationContext.getLevel().getFieldObjects();
         FieldDimension dimension = applicationContext.getLevel().getFieldDimension();
-        int componentWidth = getWidth() / dimension.getWidth();
+        int componentWidth = getWidth() / dimension.getWidth() + 1;
         int componentHeight = getHeight() / dimension.getHeight();
-        for (int i = 0; i < objects.size(); i++) {
-            FieldObject object = objects.get(i);
-            g.drawImage(object.getImage(), object.getCoordinates().getX() * componentWidth ,
+        for (FieldObject object : objects) {
+            g.drawImage(object.getImage(), object.getCoordinates().getX() * componentWidth,
                     object.getCoordinates().getY() * componentHeight, componentWidth, componentHeight, this);
         }
     }

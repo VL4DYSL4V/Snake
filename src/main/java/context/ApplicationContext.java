@@ -1,12 +1,16 @@
 package context;
 
 import entity.Level;
-import enums.LevelName;
+import enums.LevelID;
 import util.converter.StringToLevelConverter;
 
 public final class ApplicationContext {
 
-    private Level level = StringToLevelConverter.of(LevelName.ONE.getName());
+    private Level level = StringToLevelConverter.of(LevelID.ONE.getName());
+
+    public synchronized void restoreLastLevel(){
+        this.level = StringToLevelConverter.of(level.getLevelID().getName());
+    }
 
     public synchronized Level getLevel() {
         return level;

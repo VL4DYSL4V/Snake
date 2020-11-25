@@ -1,16 +1,21 @@
 package builder;
 
-import entity.FieldDimension;
-import entity.FieldObject;
-import entity.Level;
+import entity.*;
+import enums.LevelID;
 
+import java.time.LocalTime;
 import java.util.LinkedList;
 import java.util.List;
 
 public final class LevelBuilderImpl implements LevelBuilder {
 
-    private FieldDimension fieldDimension;
-
+    private FieldDimension fieldDimension = new FieldDimension(0, 0);
+    private long scoresThreshold = 0L;
+    private Snake snake;
+    private LocalTime playTime = LocalTime.of(0, 0, 0, 0);
+    private LevelID levelID;
+    private int spawnFrequency = 0;
+    private List<Coordinates> spawnCoordinates = new LinkedList<>();
     private List<FieldObject> apples = new LinkedList<>();
     private List<FieldObject> pears = new LinkedList<>();
     private List<FieldObject> mushrooms = new LinkedList<>();
@@ -18,8 +23,9 @@ public final class LevelBuilderImpl implements LevelBuilder {
     private List<FieldObject> stones = new LinkedList<>();
     private List<FieldObject> walls = new LinkedList<>();
 
-    public LevelBuilderImpl(FieldDimension fieldDimension) {
-        this.fieldDimension = fieldDimension;
+    public LevelBuilderImpl(LevelID levelID, Snake snake) {
+        this.levelID = levelID;
+        this.snake = snake;
     }
 
     @Override
@@ -65,11 +71,43 @@ public final class LevelBuilderImpl implements LevelBuilder {
     }
 
     @Override
-    public FieldDimension getFieldDimension() {
-        return fieldDimension;
+    public LevelBuilder setScoresThreshold(long scoresThreshold) {
+        this.scoresThreshold = scoresThreshold;
+        return this;
     }
 
-    public Level build(){
+    @Override
+    public LevelBuilder setPlayTime(LocalTime playTime) {
+        this.playTime = playTime;
+        return this;
+    }
+
+    @Override
+    public LevelBuilder setLevelID(LevelID levelID) {
+        this.levelID = levelID;
+        return this;
+    }
+
+    @Override
+    public LevelBuilder setSpawnCoordinates(List<Coordinates> spawnCoordinates) {
+        this.spawnCoordinates = spawnCoordinates;
+        return this;
+    }
+
+    @Override
+    public LevelBuilder setSpawnFrequency(int spawnFrequency) {
+        this.spawnFrequency = spawnFrequency;
+        return this;
+    }
+
+    @Override
+    public LevelBuilder setSnake(Snake snake) {
+        this.snake = snake;
+        return this;
+    }
+
+
+    public Level build() {
         List<List<FieldObject>> objects = new LinkedList<>();
         objects.add(apples);
         objects.add(pears);
@@ -77,6 +115,7 @@ public final class LevelBuilderImpl implements LevelBuilder {
         objects.add(scoreBonuses);
         objects.add(stones);
         objects.add(walls);
-        return new Level(fieldDimension, objects);
+        return new Level(fieldDimension, objects, snake, scoresThreshold,
+                playTime, levelID, spawnCoordinates, spawnFrequency);
     }
 }

@@ -1,17 +1,22 @@
 package ui;
 
 import context.ApplicationContext;
+import enums.Direction;
 import enums.UIColor;
 import handler.ExitHandler;
-import util.uiUtil.ImageFactory;
+import handler.PlayHandler;
+import util.ImageFactory;
 import util.uiUtil.UIUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.time.LocalTime;
 
 public final class GameFrame extends JFrame {
-    private static final int WIDTH = 700;
-    private static final int HEIGHT = 700;
+    private static final int WIDTH = 900;
+    private static final int HEIGHT = 900;
     private static final Font FONT = new Font(Font.SERIF, Font.BOLD, HEIGHT / 25);
 
     private final JPanel rootPanel = new BackgroundPanel(ImageFactory.getGrassImage());
@@ -24,11 +29,13 @@ public final class GameFrame extends JFrame {
     private final JLabel timeLabel = new JLabel();
 
     private final ExitHandler exitHandler;
+    private final PlayHandler playHandler;
     private final ApplicationContext applicationContext;
 
-    public GameFrame(ExitHandler exitHandler, ApplicationContext applicationContext) {
-        this.exitHandler = exitHandler;
+    public GameFrame(ApplicationContext applicationContext, ExitHandler exitHandler, PlayHandler playHandler) {
         this.applicationContext = applicationContext;
+        this.exitHandler = exitHandler;
+        this.playHandler = playHandler;
         this.gamePanel = new GamePanel(applicationContext);
         frameTuning();
         configRootPanel();
@@ -38,6 +45,27 @@ public final class GameFrame extends JFrame {
         configScoreLabel();
         configTimeLabel();
         constructWindow();
+    }
+
+    private final class MoveSnakeInvoker extends KeyAdapter{
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            switch (e.getKeyCode()){
+                case KeyEvent.VK_UP:
+                    playHandler.moveSnake(Direction.UP);
+                    break;
+                case KeyEvent.VK_DOWN:
+                    playHandler.moveSnake(Direction.DOWN);
+                    break;
+                case KeyEvent.VK_LEFT:
+                    playHandler.moveSnake(Direction.LEFT);
+                    break;
+                case KeyEvent.VK_RIGHT:
+                    playHandler.moveSnake(Direction.RIGHT);
+                    break;
+            }
+        }
     }
 
     private void constructWindow() {
@@ -51,7 +79,7 @@ public final class GameFrame extends JFrame {
         constraints.fill = GridBagConstraints.BOTH;
         constraints.insets = new Insets(5, 5, 5, 5);
         controlPanel.add(backButton, constraints);
-        constraints.insets = new Insets(5, (int)(WIDTH / 4.5), 5, (int)(WIDTH / 4.5));
+        constraints.insets = new Insets(5, (int) (WIDTH / 4.5), 5, (int) (WIDTH / 4.5));
         constraints.anchor = GridBagConstraints.CENTER;
         constraints.gridx = 1;
         controlPanel.add(timeLabel, constraints);
@@ -61,10 +89,10 @@ public final class GameFrame extends JFrame {
 
     }
 
-    private void configTimeLabel(){
+    private void configTimeLabel() {
         timeLabel.setFont(new Font(Font.SERIF, Font.BOLD, HEIGHT / 18));
         timeLabel.setForeground(new Color(235, 0, 0));
-        timeLabel.setText("0-00");
+        updateTime();
     }
 
     private void configScoreLabel() {
@@ -72,7 +100,7 @@ public final class GameFrame extends JFrame {
         scoreLabel.setForeground(UIColor.FOREGROUND.getColor());
         scoreLabel.setBackground(UIColor.BACKGROUND.getColor());
         scoreLabel.setOpaque(true);
-        scoreLabel.setText(" Scores: " + applicationContext.getLevel().getScores() + " ");
+        updateScores();
     }
 
     private void configBackButton() {
@@ -80,7 +108,7 @@ public final class GameFrame extends JFrame {
         backButton.addActionListener(e -> exitHandler.exit(this));
     }
 
-    private void configGamePanel(){
+    private void configGamePanel() {
         gamePanel.setOpaque(false);
         gamePanel.setSize(WIDTH, HEIGHT - 50);
     }
@@ -107,5 +135,31 @@ public final class GameFrame extends JFrame {
         setSize(WIDTH, HEIGHT);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setFocusable(true);
+        addKeyListener(new MoveSnakeInvoker());
     }
+
+    public void updateScores() {
+        scoreLabel.setText(" Scores: " + applicationContext.getLevel().getScores() +
+                "/" + applicationContext.getLevel().getScoresThreshold() + " ");
+    }
+
+    public void updateTime() {
+        LocalTime time = applicationContext.getLevel().getPlayTime();
+        int minute = time.getMinute();
+        int second = time.getSecond();
+        StringBuilder out = new StringBuilder();
+        if (minute > 10) {
+            out.append(minute);
+        } else {
+            out.append("0").append(minute);
+        }
+        out.append(":");
+        if (second >= 10) {
+            out.append(second);
+        } else {
+            out.append("0").append(second);
+        }
+        timeLabel.setText(out.toString());
+    }
+
 }

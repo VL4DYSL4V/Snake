@@ -1,12 +1,12 @@
 package ui;
 
 import context.ApplicationContext;
-import enums.LevelName;
+import enums.LevelID;
 import enums.UIColor;
 import handler.ExitHandler;
-import handler.MoveForwardHandler;
+import handler.PlayHandler;
 import util.converter.StringToLevelConverter;
-import util.uiUtil.ImageFactory;
+import util.ImageFactory;
 import util.uiUtil.UIUtils;
 
 import javax.swing.*;
@@ -31,14 +31,14 @@ public final class MainWindow extends JFrame {
     private final JLabel logoHolder = new JLabel();
 
     private final ExitHandler exitHandler;
-    private final MoveForwardHandler moveForwardHandler;
+    private final PlayHandler playHandler;
     private final ApplicationContext applicationContext;
 
-    public MainWindow(ApplicationContext applicationContext, ExitHandler exitHandler, MoveForwardHandler moveForwardHandler){
+    public MainWindow(ApplicationContext applicationContext, ExitHandler exitHandler, PlayHandler playHandler){
         this.applicationContext = applicationContext;
         this.levelComboBox = new JComboBox<>();
         this.exitHandler = exitHandler;
-        this.moveForwardHandler = moveForwardHandler;
+        this.playHandler = playHandler;
         frameTuning();
         configRootPanel();
         configLeftPanel();
@@ -91,8 +91,8 @@ public final class MainWindow extends JFrame {
 
     @SuppressWarnings("unchecked")
     private void configLevelComboBox(){
-        for (LevelName levelName : LevelName.values()) {
-            levelComboBox.addItem(levelName.getName());
+        for (LevelID levelID : LevelID.values()) {
+            levelComboBox.addItem(levelID.getName());
         }
         levelComboBox.setBackground(UIColor.BACKGROUND.getColor());
         levelComboBox.setForeground(UIColor.FOREGROUND.getColor());
@@ -118,7 +118,7 @@ public final class MainWindow extends JFrame {
     }
 
     private void configPlayButton(){
-        playButton.addActionListener(e -> moveForwardHandler.play());
+        playButton.addActionListener(e -> playHandler.start());
         playButton.setFont(FONT);
     }
 

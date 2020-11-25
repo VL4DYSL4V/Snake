@@ -1,8 +1,12 @@
 package builder;
 
+import entity.Coordinates;
 import entity.FieldDimension;
 import entity.FieldObject;
+import entity.Snake;
+import enums.LevelID;
 
+import java.time.LocalTime;
 import java.util.List;
 
 public interface LevelBuilder {
@@ -21,5 +25,15 @@ public interface LevelBuilder {
 
     LevelBuilder setWalls(List<FieldObject> walls);
 
-    FieldDimension getFieldDimension();
+    LevelBuilder setScoresThreshold(long scoresThreshold);
+
+    LevelBuilder setPlayTime(LocalTime playTime);
+
+    LevelBuilder setLevelID(LevelID levelID);
+
+    LevelBuilder setSpawnCoordinates(List<Coordinates> spawnCoordinates);
+
+    LevelBuilder setSpawnFrequency(int spawnFrequency);
+
+    LevelBuilder setSnake(Snake snake);
 }

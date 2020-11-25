@@ -1,4 +1,4 @@
-package util.uiUtil;
+package util;
 
 import java.awt.*;
 import java.nio.file.Path;
@@ -15,6 +15,8 @@ public final class ImageFactory {
     private static final Path wall = Paths.get("C:\\Users\\владислав\\IdeaProjects\\Labs\\Snake\\picture\\wall.png");
     private static final Path mushroom = Paths.get("C:\\Users\\владислав\\IdeaProjects\\Labs\\Snake\\picture\\mushroom.png");
     private static final Path scoreBonus = Paths.get("C:\\Users\\владислав\\IdeaProjects\\Labs\\Snake\\picture\\scoreBonus.png");
+    private static final Path snakeHead = Paths.get("C:\\Users\\владислав\\IdeaProjects\\Labs\\Snake\\picture\\snakeHead.png");
+    private static final Path snakeBody = Paths.get("C:\\Users\\владислав\\IdeaProjects\\Labs\\Snake\\picture\\snakeBody.png");
 
     private ImageFactory() {
     }
@@ -50,5 +52,14 @@ public final class ImageFactory {
     public static Image getScoreBonus() {
         return TOOLKIT.createImage(scoreBonus.toString());
     }
+
+    public static Image getSnakeHead() {
+        return TOOLKIT.createImage(snakeHead.toString());
+    }
+
+    public static Image getSnakeBody() {
+        return TOOLKIT.createImage(snakeBody.toString());
+    }
+
 
 }

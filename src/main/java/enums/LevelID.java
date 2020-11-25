@@ -1,11 +1,11 @@
 package enums;
 
-public enum LevelName {
-    ONE("Level 1");
+public enum LevelID {
+    ONE("Level 1"), TWO("Level 2");
 
     private final String name;
 
-    LevelName(String name) {
+    LevelID(String name) {
         this.name = name;
     }
 

@@ -2,7 +2,7 @@ package entity;
 
 import com.sun.istack.internal.Nullable;
 import enums.MapObject;
-import util.uiUtil.ImageFactory;
+import util.ImageFactory;
 
 import java.awt.*;
 import java.util.Objects;
@@ -17,33 +17,6 @@ public final class FieldObject {
         this.mapObject = name;
         this.coordinates = coordinates;
         this.image = image;
-    }
-
-    public FieldObject(MapObject name, Coordinates coordinates) {
-        this.mapObject = name;
-        this.coordinates = coordinates;
-        this.image = getImageByName(name);
-    }
-
-    private Image getImageByName(MapObject name) {
-        switch (name) {
-            case PEAR:
-                return ImageFactory.getPear();
-            case WALL:
-                return ImageFactory.getWall();
-            case APPLE:
-                return ImageFactory.getApple();
-            case STONE:
-                return ImageFactory.getStone();
-            case MUSHROOM:
-                return ImageFactory.getMushroom();
-            case SCORE_BONUS:
-                return ImageFactory.getScoreBonus();
-            case SNAKE:
-            case EMPTY:
-                return null;
-        }
-        return null;
     }
 
     public static FieldObject apple(Coordinates coordinates) {
@@ -68,6 +41,14 @@ public final class FieldObject {
 
     public static FieldObject scoreBonus(Coordinates coordinates) {
         return new FieldObject(MapObject.SCORE_BONUS, coordinates, ImageFactory.getScoreBonus());
+    }
+
+    public static FieldObject snakeHead(Coordinates coordinates) {
+        return new FieldObject(MapObject.SNAKE_HEAD, coordinates, ImageFactory.getSnakeHead());
+    }
+
+    public static FieldObject snakeBody(Coordinates coordinates) {
+        return new FieldObject(MapObject.SNAKE_BODY, coordinates, ImageFactory.getSnakeBody());
     }
 
     public static FieldObject empty(Coordinates coordinates) {

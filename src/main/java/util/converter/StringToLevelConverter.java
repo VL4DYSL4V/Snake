@@ -1,11 +1,9 @@
 package util.converter;
 
-import builder.LevelBuilderImpl;
-import director.Director;
-import director.DirectorImpl;
-import entity.FieldDimension;
+import levelConstructor.LevelConstructor;
+import levelConstructor.LevelConstructorImpl;
 import entity.Level;
-import enums.LevelName;
+import enums.LevelID;
 
 import java.util.Objects;
 
@@ -14,11 +12,11 @@ public final class StringToLevelConverter {
     private StringToLevelConverter(){}
 
     public static Level of(String level){
-        if (Objects.equals(level, LevelName.ONE.getName())){
-            LevelBuilderImpl builder = new LevelBuilderImpl(new FieldDimension(20, 30));
-            Director director = new DirectorImpl();
-            director.constructFirstLevel(builder);
-            return builder.build();
+        LevelConstructor levelConstructor = new LevelConstructorImpl();
+        if (Objects.equals(level, LevelID.ONE.getName())){
+            return levelConstructor.constructFirstLevel();
+        }else if (Objects.equals(level, LevelID.TWO.getName())){
+            return levelConstructor.constructSecondLevel();
         }
         throw new IllegalArgumentException("Unknown level: " + level);
     }

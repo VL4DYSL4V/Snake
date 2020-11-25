@@ -2,13 +2,14 @@ package util;
 
 import entity.Coordinates;
 import entity.FieldDimension;
+import enums.Direction;
 
 import java.util.Collection;
 import java.util.Random;
 
-public final class CoordinateGenerationUtils {
+public final class CoordinateUtils {
 
-    private CoordinateGenerationUtils() {
+    private CoordinateUtils() {
     }
 
     public static Coordinates simpleCoordinatesCalculation(int maxDesiredX, int maxDesiredY) {
@@ -101,20 +102,69 @@ public final class CoordinateGenerationUtils {
         }
     }
 
-    public static Coordinates walkRight(Coordinates from) {
+    public static Coordinates next(Coordinates from, Direction direction, FieldDimension fieldDimension) {
+        switch (direction) {
+            case UP:
+                if (isOnUpperEdge(from, fieldDimension)) {
+                    throw new IllegalStateException("Coordinates are on upper edge");
+                }
+                return walkUp(from);
+            case DOWN:
+                if (isOnBottomEdge(from, fieldDimension)) {
+                    throw new IllegalStateException("Coordinates are on bottom edge");
+                }
+                return walkDown(from);
+            case LEFT:
+                if (isOnLeftEdge(from, fieldDimension)) {
+                    throw new IllegalStateException("Coordinates are on left edge");
+                }
+                return walkLeft(from);
+            case RIGHT:
+                if (isOnRightEdge(from, fieldDimension)) {
+                    throw new IllegalStateException("Coordinates are on right edge");
+                }
+                return walkRight(from);
+        }
+        throw new IllegalArgumentException("Unknown direction " + direction);
+    }
+
+    private static Coordinates walkRight(Coordinates from) {
         return new Coordinates(from.getX() + 1, from.getY());
     }
 
-    public static Coordinates walkLeft(Coordinates from) {
+    private static Coordinates walkLeft(Coordinates from) {
         return new Coordinates(from.getX() - 1, from.getY());
     }
 
-    public static Coordinates walkUp(Coordinates from) {
+    private static Coordinates walkUp(Coordinates from) {
         return new Coordinates(from.getX(), from.getY() - 1);
     }
 
-    public static Coordinates walkDown(Coordinates from) {
+    private static Coordinates walkDown(Coordinates from) {
         return new Coordinates(from.getX(), from.getY() + 1);
+    }
+
+    public static boolean canWalkInThatDirection(Coordinates coordinates, FieldDimension fieldDimension, Direction direction){
+        return ! ((isOnUpperEdge(coordinates, fieldDimension) || direction == Direction.UP)
+                && (isOnBottomEdge(coordinates, fieldDimension) || direction == Direction.DOWN)
+                && (isOnLeftEdge(coordinates, fieldDimension) || direction == Direction.LEFT)
+                && (isOnRightEdge(coordinates, fieldDimension) || direction == Direction.RIGHT));
+    }
+
+    public static boolean isOnLeftEdge(Coordinates coordinates, FieldDimension fieldDimension) {
+        return coordinates.getX() == fieldDimension.getMinX();
+    }
+
+    public static boolean isOnRightEdge(Coordinates coordinates, FieldDimension fieldDimension) {
+        return coordinates.getX() == fieldDimension.getMaxX();
+    }
+
+    public static boolean isOnUpperEdge(Coordinates coordinates, FieldDimension fieldDimension) {
+        return coordinates.getY() == fieldDimension.getMinY();
+    }
+
+    public static boolean isOnBottomEdge(Coordinates coordinates, FieldDimension fieldDimension) {
+        return coordinates.getY() == fieldDimension.getMaxY();
     }
 
     public static Coordinates generateLeftUpperCorner(FieldDimension fieldDimension) {
