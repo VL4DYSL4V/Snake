@@ -8,15 +8,15 @@ public final class ApplicationContext {
 
     private Level level = StringToLevelConverter.of(LevelID.ONE.getName());
 
-    public synchronized void restoreLastLevel(){
+    public void restoreLastLevel(){
         this.level = StringToLevelConverter.of(level.getLevelID().getName());
     }
 
-    public synchronized Level getLevel() {
+    public Level getLevel() {
         return level;
     }
 
-    public synchronized void setLevel(Level level) {
+    public void setLevel(Level level) {
         this.level = level;
     }
 

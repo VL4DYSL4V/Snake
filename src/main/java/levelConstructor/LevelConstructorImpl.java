@@ -82,7 +82,7 @@ public final class LevelConstructorImpl implements LevelConstructor {
                 .setScoreBonus(scoreBonus)
                 .setMushrooms(mushrooms)
                 .setSpawnCoordinates(spawnCoordinates)
-                .setSpawnFrequency(8)
+                .setSpawnFrequency(5)
                 .setPlayTime(LocalTime.of(0, 1, 0))
                 .setScoresThreshold(100);
         return builder.build();
@@ -188,7 +188,7 @@ public final class LevelConstructorImpl implements LevelConstructor {
                 .setMushrooms(mushrooms)
                 .setScoresThreshold(300)
                 .setSpawnCoordinates(spawnCoordinates)
-                .setSpawnFrequency(7)
+                .setSpawnFrequency(4)
                 .setPlayTime(LocalTime.of(0, 2, 0));
         return builder.build();
     }

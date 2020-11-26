@@ -3,6 +3,7 @@ package application;
 import context.ApplicationContext;
 import enums.Direction;
 import exception.EndOfGameException;
+import exception.TimeIsUpException;
 import handler.ExitHandler;
 import handler.PlayHandler;
 import ui.EndOfGameFrame;
@@ -15,8 +16,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+// TODO: 26.11.2020 Think of better thread interaction than just monopolizing ApplicationContext by one thread
 public final class Application {
 
+    // TODO: 26.11.2020  Create separate WindowHolder class and handlers
     private final JFrame mainWindow;
     private final GameFrame gameFrame;
     private final JFrame endOfGameFrame;
@@ -25,9 +28,11 @@ public final class Application {
 
     private volatile boolean gameOver = false;
 
-    private final ScheduledExecutorService ses = Executors.newScheduledThreadPool(2);
+    // TODO: 26.11.2020 THIS MUST BE IN APPLICATION_CONTEXT
+    private final ScheduledExecutorService ses = Executors.newScheduledThreadPool(3);
     private ScheduledFuture<?> countDownFuture;
     private ScheduledFuture<?> foodSpawnFuture;
+    private ScheduledFuture<?> crawlingFuture;
 
     public Application() {
         ExitHandler exitHandler = new ExitController();
@@ -45,30 +50,30 @@ public final class Application {
 
         @Override
         public void start() {
-            SwingUtilities.invokeLater(() -> {
-                mainWindow.setVisible(false);
-                gameFrame.setVisible(true);
-            });
-            gameOver = false;
-            gameFrame.updateScores();
-            gameFrame.updateTime();
-            startCountDown();
-            startFruitSpawn();
+                SwingUtilities.invokeLater(() -> {
+                    mainWindow.setVisible(false);
+                    gameFrame.setVisible(true);
+                });
+                gameOver = false;
+                gameFrame.updateScores();
+                gameFrame.updateTime();
+                startCountDown();
+                startFruitSpawn();
+                startAutomaticCrawling();
         }
 
         @Override
         public void moveSnake(Direction direction) {
-            try{
-                if(!gameOver) {
-                    applicationContext.getLevel().moveSnake(direction);
-                    gameFrame.updateScores();
-                    gameFrame.repaint();
+            synchronized (applicationContext) {
+                try {
+                    if (!gameOver) {
+                        applicationContext.getLevel().turnSnake(direction);
+                        gameFrame.updateScores();
+                        gameFrame.repaint();
+                    }
+                } catch (EndOfGameException e) {
+                    endOfGameExceptionHandling();
                 }
-            }catch (EndOfGameException e){
-                gameOver = true;
-                stopCountDown();
-                stopFruitSpawn();
-                SwingUtilities.invokeLater(() -> endOfGameFrame.setVisible(true));
             }
         }
 
@@ -87,7 +92,7 @@ public final class Application {
                 SwingUtilities.invokeLater(() -> {
                     mainWindow.setVisible(true);
                     gameFrame.setVisible(false);
-                    if(endOfGameFrame.isVisible()){
+                    if (endOfGameFrame.isVisible()) {
                         endOfGameFrame.setVisible(false);
                     }
                 });
@@ -101,6 +106,34 @@ public final class Application {
                 applicationContext.restoreLastLevel();
             }
         }
+    }
+
+    private void startAutomaticCrawling() {
+        class Crawler implements Runnable {
+
+            boolean skippedOnce = false;
+
+            @Override
+            public void run() {
+                synchronized (applicationContext) {
+                    try {
+                        if (applicationContext.getLevel().turningPerformed() && !skippedOnce) {
+                            skippedOnce = true;
+                        } else {
+                            skippedOnce = false;
+                            applicationContext.getLevel().moveInCurrentDirection();
+                        }
+                    } catch (EndOfGameException e) {
+                        endOfGameExceptionHandling();
+                    }
+                    gameFrame.updateScores();
+                    gameFrame.repaint();
+                }
+            }
+        }
+
+        crawlingFuture = ses.scheduleAtFixedRate(new Crawler(), 2,
+                250, TimeUnit.MILLISECONDS);
     }
 
     private void startFruitSpawn() {
@@ -122,11 +155,8 @@ public final class Application {
         Runnable countdown = () -> {
             try {
                 applicationContext.getLevel().decrementPlayTime(1);
-            } catch (EndOfGameException e) {
-                gameOver = true;
-                stopCountDown();
-                stopFruitSpawn();
-                SwingUtilities.invokeLater(() -> endOfGameFrame.setVisible(true));
+            } catch (TimeIsUpException e) {
+                endOfGameExceptionHandling();
             }
             gameFrame.updateTime();
         };
@@ -139,4 +169,20 @@ public final class Application {
         }
     }
 
+    private void stopAutomaticCrawling() {
+        if (crawlingFuture != null) {
+            crawlingFuture.cancel(false);
+        }
+    }
+
+    private void endOfGameExceptionHandling() {
+        gameOver = true;
+        gameFrame.updateScores();
+        gameFrame.updateTime();
+        gameFrame.repaint();
+        stopCountDown();
+        stopFruitSpawn();
+        stopAutomaticCrawling();
+        SwingUtilities.invokeLater(() -> endOfGameFrame.setVisible(true));
+    }
 }

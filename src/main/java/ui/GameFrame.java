@@ -79,7 +79,7 @@ public final class GameFrame extends JFrame {
         constraints.fill = GridBagConstraints.BOTH;
         constraints.insets = new Insets(5, 5, 5, 5);
         controlPanel.add(backButton, constraints);
-        constraints.insets = new Insets(5, (int) (WIDTH / 4.5), 5, (int) (WIDTH / 4.5));
+        constraints.insets = new Insets(5, (int) (WIDTH / 4.5), 5, WIDTH / 6);
         constraints.anchor = GridBagConstraints.CENTER;
         constraints.gridx = 1;
         controlPanel.add(timeLabel, constraints);
