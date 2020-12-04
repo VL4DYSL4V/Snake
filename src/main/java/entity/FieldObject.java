@@ -2,6 +2,7 @@ package entity;
 
 import enums.MapObject;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
@@ -10,7 +11,7 @@ import java.util.Objects;
 @XmlRootElement
 public final class FieldObject implements Serializable {
 
-    @XmlElement
+    @XmlAttribute
     private MapObject mapObject;
     @XmlElement
     private Coordinates coordinates;

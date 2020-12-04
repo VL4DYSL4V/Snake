@@ -6,7 +6,6 @@ import java.util.Date;
 
 public class DateLocalTimeAdapter extends XmlAdapter<Date, LocalTime> {
 
-
     @Override
     public LocalTime unmarshal(Date v) {
         return LocalDateTime.ofInstant(v.toInstant(),

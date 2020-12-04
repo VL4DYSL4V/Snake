@@ -1,8 +1,8 @@
-package handler;
+package controller;
 
 import enums.Direction;
 
-public interface PlayHandler {
+public interface GameController {
 
     void start();
 

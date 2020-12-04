@@ -3,9 +3,9 @@ package ui;
 import context.ApplicationContext;
 import enums.LevelID;
 import enums.UIColor;
+import handler.ChangeLevelHandler;
 import handler.ExitHandler;
-import handler.PlayHandler;
-import util.converter.StringToLevelConverter;
+import controller.GameController;
 import util.uiUtil.ImageFactory;
 import util.uiUtil.UIUtils;
 
@@ -31,14 +31,17 @@ public final class MainWindow extends JFrame {
     private final JLabel logoHolder = new JLabel();
 
     private final ExitHandler exitHandler;
-    private final PlayHandler playHandler;
-    private final ApplicationContext applicationContext;
+    private final GameController gameController;
+//    private final ApplicationContext applicationContext;
+    private final ChangeLevelHandler changeLevelHandler;
 
-    public MainWindow(ApplicationContext applicationContext, ExitHandler exitHandler, PlayHandler playHandler){
-        this.applicationContext = applicationContext;
+    public MainWindow(ApplicationContext applicationContext, ExitHandler exitHandler,
+                      GameController gameController, ChangeLevelHandler changeLevelHandler) {
+//        this.applicationContext = applicationContext;
         this.levelComboBox = new JComboBox<>();
         this.exitHandler = exitHandler;
-        this.playHandler = playHandler;
+        this.gameController = gameController;
+        this.changeLevelHandler = changeLevelHandler;
         frameTuning();
         configRootPanel();
         configLeftPanel();
@@ -51,7 +54,7 @@ public final class MainWindow extends JFrame {
         constructWindow();
     }
 
-    private void constructWindow(){
+    private void constructWindow() {
         add(rootPanel);
         constructLeftPanel();
         constructRightPanel();
@@ -66,22 +69,22 @@ public final class MainWindow extends JFrame {
         rootPanel.add(rightPanel, constraints);
     }
 
-    private void constructRightPanel(){
+    private void constructRightPanel() {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.fill = GridBagConstraints.BOTH;
         constraints.gridx = 0;
         constraints.gridy = 0;
-        constraints.insets = new Insets(5,5,5,5);
+        constraints.insets = new Insets(5, 5, 5, 5);
         rightPanel.add(settingsButton, constraints);
         constraints.gridy = 1;
         rightPanel.add(exitButton, constraints);
     }
 
-    private void constructLeftPanel(){
+    private void constructLeftPanel() {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.gridx = 0;
         constraints.gridy = 0;
-        constraints.insets = new Insets(5,5,5,5);
+        constraints.insets = new Insets(5, 5, 5, 5);
         constraints.fill = GridBagConstraints.BOTH;
         constraints.anchor = GridBagConstraints.LINE_START;
         leftPanel.add(playButton, constraints);
@@ -90,44 +93,44 @@ public final class MainWindow extends JFrame {
     }
 
     @SuppressWarnings("unchecked")
-    private void configLevelComboBox(){
+    private void configLevelComboBox() {
         for (LevelID levelID : LevelID.values()) {
-            levelComboBox.addItem(levelID.getName());
+            levelComboBox.addItem(levelID.getId());
         }
         levelComboBox.setBackground(UIColor.BACKGROUND.getColor());
         levelComboBox.setForeground(UIColor.FOREGROUND.getColor());
         levelComboBox.setFont(FONT);
-        levelComboBox.addActionListener(e ->{
+        levelComboBox.addActionListener(e -> {
             Object source = e.getSource();
-            if(source.equals(levelComboBox)){
-                JComboBox<String> box = (JComboBox<String>)source;
+            if (source.equals(levelComboBox)) {
+                JComboBox<String> box = (JComboBox<String>) source;
                 String item = (String) box.getSelectedItem();
-                applicationContext.setLevel(StringToLevelConverter.of(item));
+                changeLevelHandler.change(item);
             }
         });
     }
 
-    private void configLogoHolder(){
+    private void configLogoHolder() {
         logoHolder.setIcon(new ImageIcon(ImageFactory.getLogo()
-                .getScaledInstance((int)(WIDTH/2.5), HEIGHT/3, Image.SCALE_SMOOTH)));
+                .getScaledInstance((int) (WIDTH / 2.5), HEIGHT / 3, Image.SCALE_SMOOTH)));
 
     }
 
-    private void configSettingsButton(){
+    private void configSettingsButton() {
         settingsButton.setFont(FONT);
     }
 
-    private void configPlayButton(){
-        playButton.addActionListener(e -> playHandler.start());
+    private void configPlayButton() {
+        playButton.addActionListener(e -> gameController.start());
         playButton.setFont(FONT);
     }
 
-    private void configExitButton(){
+    private void configExitButton() {
         exitButton.addActionListener(e -> exitHandler.exit(this));
         exitButton.setFont(FONT);
     }
 
-    private void configRightPanel(){
+    private void configRightPanel() {
         rightPanel.setBackground(UIColor.BACKGROUND.getColor());
         rightPanel.setForeground(UIColor.FOREGROUND.getColor());
         rightPanel.setLayout(new GridBagLayout());
@@ -135,7 +138,7 @@ public final class MainWindow extends JFrame {
         rightPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
     }
 
-    private void configLeftPanel(){
+    private void configLeftPanel() {
         leftPanel.setBackground(UIColor.BACKGROUND.getColor());
         leftPanel.setForeground(UIColor.FOREGROUND.getColor());
         leftPanel.setLayout(new GridBagLayout());
@@ -143,14 +146,14 @@ public final class MainWindow extends JFrame {
         leftPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
     }
 
-    private void configRootPanel(){
+    private void configRootPanel() {
         rootPanel.setSize(WIDTH, HEIGHT);
         rootPanel.setBackground(UIColor.BACKGROUND.getColor());
         rootPanel.setForeground(UIColor.FOREGROUND.getColor());
         rootPanel.setLayout(new GridBagLayout());
     }
 
-    private void frameTuning(){
+    private void frameTuning() {
         setTitle("*** Snake ***");
         setResizable(false);
         setLocation((UIUtils.getScreenWidth() - WIDTH) / 2, (UIUtils.getScreenHeight() - HEIGHT) / 2);

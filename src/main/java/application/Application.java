@@ -1,66 +1,57 @@
 package application;
 
 import context.ApplicationContext;
+import handler.ChangeLevelHandlerImpl;
 import enums.Direction;
 import exception.EndOfGameException;
 import exception.TimeIsUpException;
 import handler.ExitHandler;
-import handler.PlayHandler;
+import controller.GameController;
 import ui.EndOfGameFrame;
 import ui.GameFrame;
 import ui.MainWindow;
+import ui.WindowHolder;
 
 import javax.swing.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 // TODO: 26.11.2020 Think of better thread interaction than just monopolizing ApplicationContext by one thread
 public final class Application {
 
-    // TODO: 26.11.2020  Create separate WindowHolder class and handlers
-    private final JFrame mainWindow;
-    private final GameFrame gameFrame;
-    private final JFrame endOfGameFrame;
-
+    private final WindowHolder windowHolder;
     private final ApplicationContext applicationContext = new ApplicationContext();
 
     private volatile boolean gameOver = false;
     private volatile boolean turningPerformed = false;
 
-    // TODO: 26.11.2020 THIS MUST BE IN APPLICATION_CONTEXT
-    private final ScheduledExecutorService ses = Executors.newScheduledThreadPool(3);
+    // TODO: 26.11.2020 THIS MUST BE SOMEHOW MOVED IN SEPARATE CLASSES
     private ScheduledFuture<?> countDownFuture;
     private ScheduledFuture<?> foodSpawnFuture;
     private ScheduledFuture<?> crawlingFuture;
 
     public Application() {
         ExitHandler exitHandler = new ExitController();
-        PlayController playController = new PlayController();
-        mainWindow = new MainWindow(applicationContext, exitHandler, playController);
-        gameFrame = new GameFrame(applicationContext, exitHandler, playController);
-        endOfGameFrame = new EndOfGameFrame(exitHandler);
+        GameControllerImpl gameControllerImpl = new GameControllerImpl();
+        ChangeLevelHandlerImpl changeLevelHandler = new ChangeLevelHandlerImpl(applicationContext);
+        windowHolder = new WindowHolder(applicationContext, exitHandler, changeLevelHandler, gameControllerImpl);
     }
 
     public void start() {
-        SwingUtilities.invokeLater(() -> mainWindow.setVisible(true));
+        windowHolder.showMainWindow();
     }
 
-    private final class PlayController implements PlayHandler {
+    private final class GameControllerImpl implements GameController {
 
         @Override
         public void start() {
-                SwingUtilities.invokeLater(() -> {
-                    mainWindow.setVisible(false);
-                    gameFrame.setVisible(true);
-                });
-                gameOver = false;
-                gameFrame.updateScores();
-                gameFrame.updateTime();
-                startCountDown();
-                startFruitSpawn();
-                startAutomaticCrawling();
+            gameOver = false;
+            windowHolder.hideMainWindow();
+            windowHolder.showGameWindow();
+            windowHolder.updateGameFrame();
+            startCountDown();
+            startFruitSpawn();
+            startAutomaticCrawling();
         }
 
         @Override
@@ -69,8 +60,7 @@ public final class Application {
                 try {
                     if (!gameOver) {
                         applicationContext.getLevel().turnSnake(direction);
-                        gameFrame.updateScores();
-                        gameFrame.repaint();
+                        windowHolder.updateGameFrame();
                         turningPerformed = true;
                     }
                 } catch (EndOfGameException e) {
@@ -87,32 +77,21 @@ public final class Application {
             if (prayer.getClass() == MainWindow.class) {
                 System.exit(0);
             }
+            gameOver = false;
             stopCountDown();
             stopFruitSpawn();
             stopAutomaticCrawling();
-            gameOver = false;
-            if (prayer.getClass() == GameFrame.class) {
-                SwingUtilities.invokeLater(() -> {
-                    mainWindow.setVisible(true);
-                    gameFrame.setVisible(false);
-                    if (endOfGameFrame.isVisible()) {
-                        endOfGameFrame.setVisible(false);
-                    }
-                });
-                applicationContext.restoreLastLevel();
-            } else if (prayer.getClass() == EndOfGameFrame.class) {
-                SwingUtilities.invokeLater(() -> {
-                    mainWindow.setVisible(true);
-                    endOfGameFrame.setVisible(false);
-                    gameFrame.setVisible(false);
-                });
+            if (prayer.getClass() == GameFrame.class || prayer.getClass() == EndOfGameFrame.class) {
+                windowHolder.showMainWindow();
+                windowHolder.hideGameWindow();
+                windowHolder.hideEndOfGameWindow();
                 applicationContext.restoreLastLevel();
             }
         }
     }
 
     private void startAutomaticCrawling() {
-        Runnable crawling = () ->  {
+        Runnable crawling = () -> {
             synchronized (applicationContext) {
                 try {
                     if (!turningPerformed) {
@@ -123,27 +102,22 @@ public final class Application {
                 } catch (EndOfGameException e) {
                     endOfGameExceptionHandling();
                 }
-                gameFrame.updateScores();
-                gameFrame.repaint();
+                windowHolder.updateGameFrame();
             }
         };
-        crawlingFuture = ses.scheduleAtFixedRate(crawling, 2,
+        crawlingFuture = applicationContext.getScheduledExecutorService()
+                .scheduleAtFixedRate(crawling, 2,
                 250, TimeUnit.MILLISECONDS);
     }
 
     private void startFruitSpawn() {
         Runnable fruitSpawn = () -> {
             applicationContext.getLevel().spawnFood();
-            gameFrame.repaint();
+            windowHolder.updateGameFrame();
         };
-        foodSpawnFuture = ses.scheduleAtFixedRate(fruitSpawn, 2,
+        foodSpawnFuture = applicationContext.getScheduledExecutorService()
+                .scheduleAtFixedRate(fruitSpawn, 2,
                 applicationContext.getLevel().getSpawnFrequency(), TimeUnit.SECONDS);
-    }
-
-    private void stopFruitSpawn() {
-        if (foodSpawnFuture != null) {
-            foodSpawnFuture.cancel(false);
-        }
     }
 
     private void startCountDown() {
@@ -153,9 +127,16 @@ public final class Application {
             } catch (TimeIsUpException e) {
                 endOfGameExceptionHandling();
             }
-            gameFrame.updateTime();
+            windowHolder.updateGameFrame();
         };
-        countDownFuture = ses.scheduleAtFixedRate(countdown, 2, 1, TimeUnit.SECONDS);
+        countDownFuture = applicationContext.getScheduledExecutorService()
+                .scheduleAtFixedRate(countdown, 2, 1, TimeUnit.SECONDS);
+    }
+
+    private void stopFruitSpawn() {
+        if (foodSpawnFuture != null) {
+            foodSpawnFuture.cancel(false);
+        }
     }
 
     private void stopCountDown() {
@@ -172,12 +153,10 @@ public final class Application {
 
     private void endOfGameExceptionHandling() {
         gameOver = true;
-        gameFrame.updateScores();
-        gameFrame.updateTime();
-        gameFrame.repaint();
+        windowHolder.updateGameFrame();
         stopCountDown();
         stopFruitSpawn();
         stopAutomaticCrawling();
-        SwingUtilities.invokeLater(() -> endOfGameFrame.setVisible(true));
+        windowHolder.showEndOfGameWindow();
     }
 }

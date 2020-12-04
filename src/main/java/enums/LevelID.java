@@ -3,13 +3,13 @@ package enums;
 public enum LevelID {
     ONE("Level 1"), TWO("Level 2");
 
-    private final String name;
+    private final String id;
 
-    LevelID(String name) {
-        this.name = name;
+    LevelID(String id) {
+        this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getId() {
+        return id;
     }
 }

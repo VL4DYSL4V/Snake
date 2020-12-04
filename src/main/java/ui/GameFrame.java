@@ -4,7 +4,7 @@ import context.ApplicationContext;
 import enums.Direction;
 import enums.UIColor;
 import handler.ExitHandler;
-import handler.PlayHandler;
+import controller.GameController;
 import util.uiUtil.ImageFactory;
 import util.uiUtil.UIUtils;
 
@@ -29,13 +29,13 @@ public final class GameFrame extends JFrame {
     private final JLabel timeLabel = new JLabel();
 
     private final ExitHandler exitHandler;
-    private final PlayHandler playHandler;
+    private final GameController gameController;
     private final ApplicationContext applicationContext;
 
-    public GameFrame(ApplicationContext applicationContext, ExitHandler exitHandler, PlayHandler playHandler) {
+    public GameFrame(ApplicationContext applicationContext, ExitHandler exitHandler, GameController gameController) {
         this.applicationContext = applicationContext;
         this.exitHandler = exitHandler;
-        this.playHandler = playHandler;
+        this.gameController = gameController;
         this.gamePanel = new GamePanel(applicationContext);
         frameTuning();
         configRootPanel();
@@ -53,16 +53,16 @@ public final class GameFrame extends JFrame {
         public void keyPressed(KeyEvent e) {
             switch (e.getKeyCode()){
                 case KeyEvent.VK_UP:
-                    playHandler.moveSnake(Direction.UP);
+                    gameController.moveSnake(Direction.UP);
                     break;
                 case KeyEvent.VK_DOWN:
-                    playHandler.moveSnake(Direction.DOWN);
+                    gameController.moveSnake(Direction.DOWN);
                     break;
                 case KeyEvent.VK_LEFT:
-                    playHandler.moveSnake(Direction.LEFT);
+                    gameController.moveSnake(Direction.LEFT);
                     break;
                 case KeyEvent.VK_RIGHT:
-                    playHandler.moveSnake(Direction.RIGHT);
+                    gameController.moveSnake(Direction.RIGHT);
                     break;
             }
         }

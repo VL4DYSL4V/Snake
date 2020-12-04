@@ -2,15 +2,17 @@ package entity;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.Objects;
 
 @XmlRootElement(name = "Coordinates")
-@XmlAccessorType(XmlAccessType.FIELD)
 public final class Coordinates implements Serializable {
 
+    @XmlAttribute
     private int x;
+    @XmlAttribute
     private int y;
 
     private static final long serialVersionUID = -8851169347316440995L;

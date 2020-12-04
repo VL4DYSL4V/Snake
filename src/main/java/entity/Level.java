@@ -28,6 +28,7 @@ public final class Level implements Serializable {
     private FieldDimension fieldDimension;
     private Snake snake;
     private long scoresThreshold;
+    @XmlAttribute
     private LevelID levelID;
     private int spawnFrequency;
     @XmlJavaTypeAdapter(DateLocalTimeAdapter.class)
