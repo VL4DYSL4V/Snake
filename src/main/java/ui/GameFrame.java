@@ -5,7 +5,7 @@ import enums.Direction;
 import enums.UIColor;
 import handler.ExitHandler;
 import handler.PlayHandler;
-import util.ImageFactory;
+import util.uiUtil.ImageFactory;
 import util.uiUtil.UIUtils;
 
 import javax.swing.*;

@@ -1,4 +1,4 @@
-package util;
+package util.uiUtil;
 
 import enums.MapObject;
 

@@ -3,7 +3,7 @@ package ui;
 import context.ApplicationContext;
 import entity.FieldDimension;
 import entity.FieldObject;
-import util.ImageFactory;
+import util.uiUtil.ImageFactory;
 
 import javax.swing.*;
 import java.awt.*;

@@ -27,6 +27,7 @@ public final class Application {
     private final ApplicationContext applicationContext = new ApplicationContext();
 
     private volatile boolean gameOver = false;
+    private volatile boolean turningPerformed = false;
 
     // TODO: 26.11.2020 THIS MUST BE IN APPLICATION_CONTEXT
     private final ScheduledExecutorService ses = Executors.newScheduledThreadPool(3);
@@ -70,6 +71,7 @@ public final class Application {
                         applicationContext.getLevel().turnSnake(direction);
                         gameFrame.updateScores();
                         gameFrame.repaint();
+                        turningPerformed = true;
                     }
                 } catch (EndOfGameException e) {
                     endOfGameExceptionHandling();
@@ -110,30 +112,22 @@ public final class Application {
     }
 
     private void startAutomaticCrawling() {
-        class Crawler implements Runnable {
-
-            boolean skippedOnce = false;
-
-            @Override
-            public void run() {
-                synchronized (applicationContext) {
-                    try {
-//                        if (applicationContext.getLevel().turningPerformed() && !skippedOnce) {
-//                            skippedOnce = true;
-//                        } else {
-//                            skippedOnce = false;
-                            applicationContext.getLevel().moveInCurrentDirection();
-//                        }
-                    } catch (EndOfGameException e) {
-                        endOfGameExceptionHandling();
+        Runnable crawling = () ->  {
+            synchronized (applicationContext) {
+                try {
+                    if (!turningPerformed) {
+                        applicationContext.getLevel().moveInCurrentDirection();
+                    } else {
+                        turningPerformed = false;
                     }
-                    gameFrame.updateScores();
-                    gameFrame.repaint();
+                } catch (EndOfGameException e) {
+                    endOfGameExceptionHandling();
                 }
+                gameFrame.updateScores();
+                gameFrame.repaint();
             }
-        }
-
-        crawlingFuture = ses.scheduleAtFixedRate(new Crawler(), 2,
+        };
+        crawlingFuture = ses.scheduleAtFixedRate(crawling, 2,
                 250, TimeUnit.MILLISECONDS);
     }
 

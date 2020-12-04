@@ -1,4 +1,4 @@
-package util;
+package util.coordinateUtil;
 
 import entity.Coordinates;
 import entity.FieldDimension;

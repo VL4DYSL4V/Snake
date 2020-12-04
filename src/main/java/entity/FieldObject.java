@@ -11,11 +11,13 @@ import java.util.Objects;
 public final class FieldObject implements Serializable {
 
     @XmlElement
-    private final MapObject mapObject;
+    private MapObject mapObject;
     @XmlElement
-    private final Coordinates coordinates;
+    private Coordinates coordinates;
 
     private static final long serialVersionUID = 934875976768632L;
+
+    private FieldObject(){}
 
     public FieldObject(MapObject name, Coordinates coordinates) {
         this.mapObject = name;

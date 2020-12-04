@@ -5,23 +5,90 @@ import enums.LevelID;
 import enums.MapObject;
 import exception.EndOfGameException;
 import exception.TimeIsUpException;
-import util.CoordinateUtils;
+import util.coordinateUtil.CoordinateUtils;
+import util.xmlUtil.DateLocalTimeAdapter;
 
 import javax.annotation.Nullable;
+import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.io.Serializable;
 import java.time.LocalTime;
 import java.util.*;
 
-public final class Level {
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
+public final class Level implements Serializable {
 
     private long scores = 0L;
-    private final List<List<FieldObject>> field = new LinkedList<>();
-    private final List<Coordinates> spawnCoordinates;
-    private final FieldDimension fieldDimension;
-    private final Snake snake;
-    private final long scoresThreshold;
-    private final LevelID levelID;
-    private final int spawnFrequency;
+    @XmlElementWrapper(name = "rows")
+    @XmlElement(name = "row")
+    private final List<RowHolder> field = new LinkedList<>();
+    @XmlElementWrapper(name = "spawn_coordinates")
+    private List<Coordinates> spawnCoordinates;
+    private FieldDimension fieldDimension;
+    private Snake snake;
+    private long scoresThreshold;
+    private LevelID levelID;
+    private int spawnFrequency;
+    @XmlJavaTypeAdapter(DateLocalTimeAdapter.class)
     private LocalTime playTime;
+
+    private static final long serialVersionUID = 29834868761341L;
+
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.FIELD)
+    private static final class RowHolder implements Serializable{
+
+        @XmlAttribute
+        private int id = 0;
+
+        @XmlElement(name = "field_object")
+        private List<FieldObject> row = new LinkedList<>();
+
+        private static final long serialVersionUID = -28379098789910L;
+
+        private RowHolder() {
+        }
+
+        private RowHolder(int id, List<FieldObject> row) {
+            this.id = id;
+            this.row = row;
+        }
+
+        public List<FieldObject> getRow() {
+            return row;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            RowHolder rowHolder = (RowHolder) o;
+            return id == rowHolder.id &&
+                    Objects.equals(row, rowHolder.row);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, row);
+        }
+
+        @Override
+        public String toString() {
+            return "RowHolder{" +
+                    "id=" + id +
+                    ", row=" + row +
+                    '}';
+        }
+    }
+
+    private Level(){
+
+    }
 
     public Level(FieldDimension fieldDimension, Snake snake, long scoresThreshold, LocalTime playTime, LevelID levelID,
                  List<Coordinates> spawnCoordinates, int spawnFrequency) {
@@ -52,13 +119,14 @@ public final class Level {
             for (int x = 0; x < fieldDimension.getWidth(); x++) {
                 row.add(FieldObject.empty(new Coordinates(x, y)));
             }
-            field.add(row);
+            RowHolder rowHolder = new RowHolder(y, row);
+            field.add(rowHolder);
         }
     }
 
     private void setObject(FieldObject fieldObject) {
         Coordinates coordinates = fieldObject.getCoordinates();
-        List<FieldObject> row = field.get(coordinates.getY());
+        List<FieldObject> row = field.get(coordinates.getY()).getRow();
         row.set(coordinates.getX(), fieldObject);
     }
 
@@ -88,7 +156,7 @@ public final class Level {
         }
         if (coordinates == null) {
             coordinates = spawnCoordinates.stream()
-                    .filter(c -> field.get(c.getY()).get(c.getX()).getMapObject() == MapObject.EMPTY)
+                    .filter(c -> fieldObjectAt(c).getMapObject() == MapObject.EMPTY)
                     .findAny().orElse(null);
         }
         return coordinates;
@@ -113,7 +181,7 @@ public final class Level {
     }
 
     private FieldObject fieldObjectAt(Coordinates coordinates) {
-        return field.get(coordinates.getY()).get(coordinates.getX());
+        return field.get(coordinates.getY()).getRow().get(coordinates.getX());
     }
 
     private FieldObject getNextFieldObject(Direction direction) {
@@ -268,7 +336,7 @@ public final class Level {
 
     public List<FieldObject> getFieldObjects() {
         List<FieldObject> out = new LinkedList<>();
-        field.forEach(row -> row.stream()
+        field.forEach(rowHolder -> rowHolder.getRow().stream()
                 .filter(obj -> obj.getMapObject() != MapObject.EMPTY).forEach(out::add));
         return out;
     }

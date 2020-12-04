@@ -1,18 +1,30 @@
 package entity;
 
 import enums.Direction;
-import util.CoordinateUtils;
+import util.coordinateUtil.CoordinateUtils;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public final class Snake {
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
+public final class Snake implements Serializable {
 
+    @XmlElementWrapper(name = "snake_parts")
     private List<FieldObject> snakeParts;
     private Direction currentDirection;
     private Coordinates previousTailPosition;
+
+    private static final long serialVersionUID = -873652552637819L;
+
+    private Snake(){}
 
     public Snake(List<Coordinates> coordinates, Direction currentDirection) {
         this.currentDirection = currentDirection;

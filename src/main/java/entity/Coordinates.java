@@ -10,10 +10,14 @@ import java.util.Objects;
 @XmlAccessorType(XmlAccessType.FIELD)
 public final class Coordinates implements Serializable {
 
-    private final int x;
-    private final int y;
+    private int x;
+    private int y;
 
     private static final long serialVersionUID = -8851169347316440995L;
+
+    private Coordinates(){
+
+    }
 
     public Coordinates(int x, int y) {
         this.x = x;

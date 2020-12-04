@@ -10,16 +10,18 @@ import java.util.Objects;
 @XmlAccessorType(XmlAccessType.FIELD)
 public final class FieldDimension implements Serializable {
 
-    private final int minX;
-    private final int maxX;
+    private int minX;
+    private int maxX;
 
-    private final int minY;
-    private final int maxY;
+    private int minY;
+    private int maxY;
 
-    private final int width;
-    private final int height;
+    private int width;
+    private int height;
 
     private static final long serialVersionUID = 5005034861975834645L;
+
+    private FieldDimension(){}
 
     public FieldDimension(int width, int height) {
         this.width = width;
