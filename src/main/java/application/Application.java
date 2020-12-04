@@ -87,6 +87,7 @@ public final class Application {
             }
             stopCountDown();
             stopFruitSpawn();
+            stopAutomaticCrawling();
             gameOver = false;
             if (prayer.getClass() == GameFrame.class) {
                 SwingUtilities.invokeLater(() -> {
@@ -117,12 +118,12 @@ public final class Application {
             public void run() {
                 synchronized (applicationContext) {
                     try {
-                        if (applicationContext.getLevel().turningPerformed() && !skippedOnce) {
-                            skippedOnce = true;
-                        } else {
-                            skippedOnce = false;
+//                        if (applicationContext.getLevel().turningPerformed() && !skippedOnce) {
+//                            skippedOnce = true;
+//                        } else {
+//                            skippedOnce = false;
                             applicationContext.getLevel().moveInCurrentDirection();
-                        }
+//                        }
                     } catch (EndOfGameException e) {
                         endOfGameExceptionHandling();
                     }

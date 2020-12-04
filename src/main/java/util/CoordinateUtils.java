@@ -128,20 +128,25 @@ public final class CoordinateUtils {
         throw new IllegalArgumentException("Unknown direction " + direction);
     }
 
-    private static Coordinates walkRight(Coordinates from) {
+    public static Coordinates walkRight(Coordinates from) {
         return new Coordinates(from.getX() + 1, from.getY());
     }
 
-    private static Coordinates walkLeft(Coordinates from) {
+    public static Coordinates walkLeft(Coordinates from) {
         return new Coordinates(from.getX() - 1, from.getY());
     }
 
-    private static Coordinates walkUp(Coordinates from) {
+    public static Coordinates walkUp(Coordinates from) {
         return new Coordinates(from.getX(), from.getY() - 1);
     }
 
-    private static Coordinates walkDown(Coordinates from) {
+    public static Coordinates walkDown(Coordinates from) {
         return new Coordinates(from.getX(), from.getY() + 1);
+    }
+
+    public static boolean is_SWEN_Neighbour(Coordinates toWhat, Coordinates whatToTest){
+        return walkDown(toWhat).equals(whatToTest) || walkLeft(toWhat).equals(whatToTest)
+                || walkRight(toWhat).equals(whatToTest) || walkUp(toWhat).equals(whatToTest);
     }
 
     public static boolean canWalkInThatDirection(Coordinates coordinates, FieldDimension fieldDimension, Direction direction){

@@ -3,6 +3,7 @@ package ui;
 import context.ApplicationContext;
 import entity.FieldDimension;
 import entity.FieldObject;
+import util.ImageFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,8 +25,10 @@ final class GamePanel extends JPanel {
         int componentWidth = getWidth() / dimension.getWidth() + 1;
         int componentHeight = getHeight() / dimension.getHeight();
         for (FieldObject object : objects) {
-            g.drawImage(object.getImage(), object.getCoordinates().getX() * componentWidth,
-                    object.getCoordinates().getY() * componentHeight, componentWidth, componentHeight, this);
+            g.drawImage(ImageFactory.getFieldObjectImage(object.getMapObject()),
+                    object.getCoordinates().getX() * componentWidth,
+                    object.getCoordinates().getY() * componentHeight,
+                    componentWidth, componentHeight, this);
         }
     }
 }

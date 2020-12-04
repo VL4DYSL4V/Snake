@@ -186,7 +186,7 @@ public final class LevelConstructorImpl implements LevelConstructor {
                 .setPears(pears)
                 .setScoreBonus(scoreBonus)
                 .setMushrooms(mushrooms)
-                .setScoresThreshold(300)
+                .setScoresThreshold(250)
                 .setSpawnCoordinates(spawnCoordinates)
                 .setSpawnFrequency(4)
                 .setPlayTime(LocalTime.of(0, 2, 0));
