@@ -3,7 +3,6 @@ package entity;
 import enums.Direction;
 import enums.LevelID;
 import enums.MapObject;
-import exception.EndOfGameException;
 import exception.TimeIsUpException;
 import util.coordinateUtil.CoordinateUtils;
 import util.xmlUtil.DateLocalTimeAdapter;
@@ -125,28 +124,20 @@ public final class Level implements Serializable {
         }
     }
 
-    private void setObject(FieldObject fieldObject) {
+
+    /**********************
+     *      INTERFACE      *
+     * ********************/
+
+
+    public void setObject(FieldObject fieldObject) {
         Coordinates coordinates = fieldObject.getCoordinates();
         List<FieldObject> row = field.get(coordinates.getY()).getRow();
         row.set(coordinates.getX(), fieldObject);
     }
 
-    private boolean snakeDirectionIsOppositeToCurrent(Direction direction) {
-        switch (direction) {
-            case UP:
-                return snake.getCurrentDirection() == Direction.DOWN;
-            case DOWN:
-                return snake.getCurrentDirection() == Direction.UP;
-            case RIGHT:
-                return snake.getCurrentDirection() == Direction.LEFT;
-            case LEFT:
-                return snake.getCurrentDirection() == Direction.RIGHT;
-        }
-        throw new IllegalArgumentException("Unknown direction: " + direction);
-    }
-
     @Nullable
-    private Coordinates randomAvailableSpawnCoordinates(){
+    public Coordinates randomAvailableSpawnCoordinates(){
         Random random = new Random();
         Coordinates coordinates = null;
         for (int i = 0; i < 10; i++) {
@@ -163,29 +154,11 @@ public final class Level implements Serializable {
         return coordinates;
     }
 
-    @Nullable
-    private FieldObject randomFood() {
-        Coordinates coordinates = randomAvailableSpawnCoordinates();
-        if(coordinates == null){
-            return null;
-        }
-        int chance = new Random().nextInt(4);
-        switch (chance) {
-            case 0:
-                return FieldObject.apple(coordinates);
-            case 1:
-                return FieldObject.pear(coordinates);
-            case 2:
-                return FieldObject.mushroom(coordinates);
-        }
-        return FieldObject.scoreBonus(coordinates);
-    }
-
-    private FieldObject fieldObjectAt(Coordinates coordinates) {
+    public FieldObject fieldObjectAt(Coordinates coordinates) {
         return field.get(coordinates.getY()).getRow().get(coordinates.getX());
     }
 
-    private FieldObject getNextFieldObject(Direction direction) {
+    public FieldObject getNextToHeadFieldObject(Direction direction) {
         Coordinates headCoordinates = snake.getSnakeParts().get(0).getCoordinates();
         switch (direction) {
             case LEFT:
@@ -200,77 +173,30 @@ public final class Level implements Serializable {
         throw new IllegalArgumentException("Unknown direction: " + direction);
     }
 
-    private void interactWithNextCell(Direction whereItMoves) throws EndOfGameException, TimeIsUpException {
-        FieldObject next = getNextFieldObject(whereItMoves);
-        switch (next.getMapObject()) {
-            case EMPTY:
-                return;
-            case WALL:
-                throw new EndOfGameException("You hit the wall at " + next.getCoordinates());
-            case SNAKE_BODY:
-                throw new EndOfGameException("You have bitten yourself at + " + next.getCoordinates());
-            case PEAR:
-            case APPLE:
-                scores += 5;
-                incrementPlayTime(1);
-                setObject(FieldObject.empty(next.getCoordinates()));
-                snake.appendTail();
-                break;
-            case MUSHROOM:
-                scores += 10;
-                setObject(FieldObject.empty(next.getCoordinates()));
-                snake.cutAsMuchTailAsPossible(1).forEach(c -> setObject(FieldObject.empty(c)));
-                decrementPlayTime(5);
-                break;
-            case SCORE_BONUS:
-                scores += 15;
-                setObject(FieldObject.empty(next.getCoordinates()));
-                break;
-            case STONE:
-                decrementPlayTime(5);
-                break;
+    public boolean snakeDirectionIsOppositeToCurrent(Direction direction) {
+        switch (direction) {
+            case UP:
+                return snake.getCurrentDirection() == Direction.DOWN;
+            case DOWN:
+                return snake.getCurrentDirection() == Direction.UP;
+            case RIGHT:
+                return snake.getCurrentDirection() == Direction.LEFT;
+            case LEFT:
+                return snake.getCurrentDirection() == Direction.RIGHT;
         }
-
+        throw new IllegalArgumentException("Unknown direction: " + direction);
     }
 
-    private boolean canHitNextObject(Direction whereItMoves) {
-        FieldObject next = getNextFieldObject(whereItMoves);
-        return next.getMapObject() != MapObject.STONE;
+    public Direction getSnakeCurrentDirection(){
+        return snake.getCurrentDirection();
     }
 
-    private void move(Direction direction) throws EndOfGameException {
-        TimeIsUpException exception = null;
-        try {
-            interactWithNextCell(direction);
-        } catch (TimeIsUpException e) {
-            exception = e;
-        }
-        if (!canHitNextObject(direction)) {
-            return;
-        }
-
-        Coordinates next = CoordinateUtils.next(snake.getSnakeParts().get(0).getCoordinates(), direction, fieldDimension);
-        List<FieldObject> oldSnakeParts = snake.move(next);
-        snake.setCurrentDirection(direction);
-        oldSnakeParts.forEach(sp -> setObject(FieldObject.empty(sp.getCoordinates())));
-        snake.getSnakeParts().forEach(this::setObject);
-
-        if (exception != null) {
-            EndOfGameException exc = new EndOfGameException();
-            exc.initCause(exception);
-            throw exc;
-        }
+    public void incrementScores(long amount){
+        scores+=amount;
     }
 
-    /**********************
-     *      INTERFACE      *
-     * ********************/
-
-    public void spawnFood() {
-        FieldObject fieldObject = randomFood();
-        if (fieldObject != null) {
-            setObject(fieldObject);
-        }
+    public void decrementScores(long amount){
+        scores -= amount;
     }
 
     public void incrementPlayTime(long seconds) {
@@ -279,37 +205,34 @@ public final class Level implements Serializable {
 
     public void decrementPlayTime(long seconds) throws TimeIsUpException {
         if (playTime.getHour() == 0 && playTime.getMinute() == 0 && playTime.getSecond() == 0) {
-            throw new TimeIsUpException("Game over!");
+            throw new TimeIsUpException("Time is:" + playTime);
         }
         if (playTime.getHour() * 60 * 60 + playTime.getMinute() * 60 + playTime.getSecond() <= seconds) {
             playTime = LocalTime.of(0, 0, 0);
-            throw new TimeIsUpException("Game over!");
+            throw new TimeIsUpException("Time is:" + playTime);
         }
         playTime = playTime.minusSeconds(seconds);
     }
 
-    public void turnSnake(Direction direction) throws EndOfGameException {
-        if (snakeDirectionIsOppositeToCurrent(direction) || direction == snake.getCurrentDirection()) {
-            return;
-        }
-        if (!CoordinateUtils.canWalkInThatDirection(
-                snake.getSnakeParts().get(0).getCoordinates(), fieldDimension, direction)) {
-            throw new EndOfGameException("You fell of the " + direction + " edge");
-        }
-        move(direction);
+    public void appendSnakeTail(){
+        snake.appendTail();
     }
 
-    public void moveInCurrentDirection() throws EndOfGameException {
-        if (!CoordinateUtils.canWalkInThatDirection(
-                snake.getSnakeParts().get(0).getCoordinates(), fieldDimension, snake.getCurrentDirection())) {
-            throw new EndOfGameException("You fell of the " + snake.getCurrentDirection() + " edge");
-        }
-        move(snake.getCurrentDirection());
+    public Collection<Coordinates> cutAsMuchTailAsPossible(int maxAmount){
+        return snake.cutAsMuchTailAsPossible(maxAmount);
     }
 
-    /**********************
-     *      GETTERS       *
-     * ********************/
+    public Coordinates snakeHeadCoordinates(){
+        return snake.getSnakeParts().get(0).getCoordinates();
+    }
+
+    public void moveSnake(Direction direction) {
+        Coordinates next = CoordinateUtils.next(snakeHeadCoordinates(), direction, fieldDimension);
+        List<FieldObject> oldSnakeParts = snake.move(next);
+        snake.setCurrentDirection(direction);
+        oldSnakeParts.forEach(sp -> setObject(FieldObject.empty(sp.getCoordinates())));
+        snake.getSnakeParts().forEach(this::setObject);
+    }
 
     public LocalTime getPlayTime() {
         return playTime;
@@ -335,7 +258,7 @@ public final class Level implements Serializable {
         return spawnFrequency;
     }
 
-    public List<FieldObject> getFieldObjects() {
+    public List<FieldObject> getNotEmptyFieldObjects() {
         List<FieldObject> out = new LinkedList<>();
         field.forEach(rowHolder -> rowHolder.getRow().stream()
                 .filter(obj -> obj.getMapObject() != MapObject.EMPTY).forEach(out::add));

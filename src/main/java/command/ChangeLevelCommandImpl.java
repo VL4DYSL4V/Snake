@@ -1,4 +1,4 @@
-package handler;
+package command;
 
 import context.ApplicationContext;
 import enums.LevelID;
@@ -6,29 +6,25 @@ import exception.CannotAccessLevelException;
 
 import java.util.Objects;
 
-public class ChangeLevelHandlerImpl implements ChangeLevelHandler {
+public final class ChangeLevelCommandImpl implements ChangeLevelCommand{
 
     private final ApplicationContext applicationContext;
 
-    public ChangeLevelHandlerImpl(ApplicationContext applicationContext) {
+    public ChangeLevelCommandImpl(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
     @Override
-    public void change(String choice) {
+    public void change(String levelID) {
         try {
-            boolean handled = false;
             synchronized (applicationContext) {
                 for(LevelID neuLevelID: LevelID.values()){
-                    if(Objects.equals(neuLevelID.getId(), choice)){
+                    if(Objects.equals(neuLevelID.getId(), levelID)){
                         applicationContext.setLevel(applicationContext.getLevelDAO().getLevel(neuLevelID));
-                        handled = true;
-                        break;
+                        return;
                     }
                 }
-                if(!handled){
-                    throw new IllegalArgumentException();
-                }
+                throw new IllegalArgumentException("Unknown level id: " + levelID);
             }
         } catch (CannotAccessLevelException e) {
             e.printStackTrace();

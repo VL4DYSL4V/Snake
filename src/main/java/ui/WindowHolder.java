@@ -1,10 +1,5 @@
 package ui;
 
-import context.ApplicationContext;
-import handler.ChangeLevelHandler;
-import handler.ExitHandler;
-import controller.GameController;
-
 import javax.swing.*;
 
 public class WindowHolder {
@@ -13,11 +8,10 @@ public class WindowHolder {
     private final EndOfGameFrame endOfGameFrame;
     private final MainWindow mainWindow;
 
-    public WindowHolder(ApplicationContext applicationContext, ExitHandler exitHandler,
-                        ChangeLevelHandler changeLevelHandler, GameController gameController) {
-        gameFrame = new GameFrame(applicationContext, exitHandler, gameController);
-        endOfGameFrame = new EndOfGameFrame(exitHandler);
-        mainWindow = new MainWindow(applicationContext, exitHandler, gameController, changeLevelHandler);
+    public WindowHolder(GameFrame gameFrame, EndOfGameFrame endOfGameFrame, MainWindow mainWindow) {
+        this.gameFrame = gameFrame;
+        this.endOfGameFrame = endOfGameFrame;
+        this.mainWindow = mainWindow;
     }
 
     public void showMainWindow() {
@@ -51,4 +45,5 @@ public class WindowHolder {
             gameFrame.repaint();
         });
     }
+
 }

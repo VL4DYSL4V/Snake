@@ -1,13 +1,16 @@
 package ui;
 
 import enums.UIColor;
-import handler.ExitHandler;
+import enums.event.UIEvent;
+import observer.UIEventPublisher;
+import observer.UIEventSubscriber;
 import util.uiUtil.UIUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.LinkedList;
 
-public final class EndOfGameFrame extends JFrame {
+public final class EndOfGameFrame extends JFrame implements UIEventPublisher {
 
     private static final int WIDTH = 200;
     private static final int HEIGHT = 170;
@@ -17,10 +20,9 @@ public final class EndOfGameFrame extends JFrame {
     private final JLabel messageHolder = new JLabel();
     private final JButton toMenuButton = new AppButton("To menu");
 
-    private final ExitHandler exitHandler;
+    private final java.util.List<UIEventSubscriber> UIEventSubscribers = new LinkedList<>();
 
-    public EndOfGameFrame(ExitHandler exitHandler) {
-        this.exitHandler = exitHandler;
+    public EndOfGameFrame() {
         frameTuning();
         configRootPanel();
         configMessageHolder();
@@ -39,7 +41,7 @@ public final class EndOfGameFrame extends JFrame {
     }
 
     private void configToMenuButton(){
-        toMenuButton.addActionListener(e -> exitHandler.exit(this));
+        toMenuButton.addActionListener(e -> notifySubscribers(UIEvent.RETURNING_TO_MENU));
         toMenuButton.setFont(FONT);
     }
 
@@ -65,4 +67,20 @@ public final class EndOfGameFrame extends JFrame {
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setFocusable(true);
     }
+
+    @Override
+    public void subscribe(UIEventSubscriber UIEventSubscriber) {
+        UIEventSubscribers.add(UIEventSubscriber);
+    }
+
+    @Override
+    public void unsubscribe(UIEventSubscriber UIEventSubscriber) {
+        UIEventSubscribers.remove(UIEventSubscriber);
+    }
+
+    @Override
+    public void notifySubscribers(UIEvent uiEvent) {
+        UIEventSubscribers.forEach(subscriber -> subscriber.react(uiEvent));
+    }
+
 }

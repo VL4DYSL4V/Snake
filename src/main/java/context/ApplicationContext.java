@@ -13,7 +13,6 @@ public final class ApplicationContext {
 
     private final LevelDAO levelDAO = new XmlLevelDAO();
     private Level level = StringToLevelConverter.of(LevelID.ONE.getId());
-
     private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(3);
 
     public void restoreLastLevel(){
@@ -35,4 +34,5 @@ public final class ApplicationContext {
     public ScheduledExecutorService getScheduledExecutorService() {
         return scheduledExecutorService;
     }
+
 }

@@ -1,10 +1,10 @@
 package ui;
 
 import context.ApplicationContext;
-import enums.Direction;
 import enums.UIColor;
-import handler.ExitHandler;
-import controller.GameController;
+import enums.event.UIEvent;
+import observer.UIEventPublisher;
+import observer.UIEventSubscriber;
 import util.uiUtil.ImageFactory;
 import util.uiUtil.UIUtils;
 
@@ -13,8 +13,10 @@ import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.time.LocalTime;
+import java.util.LinkedList;
 
-public final class GameFrame extends JFrame {
+public final class GameFrame extends JFrame implements UIEventPublisher {
+
     private static final int WIDTH = 900;
     private static final int HEIGHT = 900;
     private static final Font FONT = new Font(Font.SERIF, Font.BOLD, HEIGHT / 25);
@@ -28,14 +30,12 @@ public final class GameFrame extends JFrame {
     private final JLabel scoreLabel = new JLabel();
     private final JLabel timeLabel = new JLabel();
 
-    private final ExitHandler exitHandler;
-    private final GameController gameController;
     private final ApplicationContext applicationContext;
 
-    public GameFrame(ApplicationContext applicationContext, ExitHandler exitHandler, GameController gameController) {
+    private final java.util.List<UIEventSubscriber> UIEventSubscribers = new LinkedList<>();
+
+    public GameFrame(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
-        this.exitHandler = exitHandler;
-        this.gameController = gameController;
         this.gamePanel = new GamePanel(applicationContext);
         frameTuning();
         configRootPanel();
@@ -47,22 +47,37 @@ public final class GameFrame extends JFrame {
         constructWindow();
     }
 
-    private final class MoveSnakeInvoker extends KeyAdapter{
+    @Override
+    public void subscribe(UIEventSubscriber UIEventSubscriber) {
+        UIEventSubscribers.add(UIEventSubscriber);
+    }
+
+    @Override
+    public void unsubscribe(UIEventSubscriber UIEventSubscriber) {
+        UIEventSubscribers.remove(UIEventSubscriber);
+    }
+
+    @Override
+    public void notifySubscribers(UIEvent uiEvent) {
+        UIEventSubscribers.forEach(subscriber ->subscriber.react(uiEvent));
+    }
+
+    private final class MoveSnakeInvoker extends KeyAdapter {
 
         @Override
         public void keyPressed(KeyEvent e) {
-            switch (e.getKeyCode()){
+            switch (e.getKeyCode()) {
                 case KeyEvent.VK_UP:
-                    gameController.moveSnake(Direction.UP);
+                    notifySubscribers(UIEvent.UP_PRESSED);
                     break;
                 case KeyEvent.VK_DOWN:
-                    gameController.moveSnake(Direction.DOWN);
+                    notifySubscribers(UIEvent.DOWN_PRESSED);
                     break;
                 case KeyEvent.VK_LEFT:
-                    gameController.moveSnake(Direction.LEFT);
+                    notifySubscribers(UIEvent.LEFT_PRESSED);
                     break;
                 case KeyEvent.VK_RIGHT:
-                    gameController.moveSnake(Direction.RIGHT);
+                    notifySubscribers(UIEvent.RIGHT_PRESSED);
                     break;
             }
         }
@@ -86,7 +101,6 @@ public final class GameFrame extends JFrame {
         constraints.insets = new Insets(5, 5, 5, 5);
         constraints.gridx = 2;
         controlPanel.add(scoreLabel, constraints);
-
     }
 
     private void configTimeLabel() {
@@ -105,7 +119,7 @@ public final class GameFrame extends JFrame {
 
     private void configBackButton() {
         backButton.setFont(FONT);
-        backButton.addActionListener(e -> exitHandler.exit(this));
+        backButton.addActionListener(e -> notifySubscribers(UIEvent.RETURNING_TO_MENU));
     }
 
     private void configGamePanel() {

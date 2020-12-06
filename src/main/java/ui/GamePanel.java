@@ -20,7 +20,7 @@ final class GamePanel extends JPanel {
     @Override
     public void paint(Graphics g) {
         super.paint(g);
-        List<FieldObject> objects = applicationContext.getLevel().getFieldObjects();
+        List<FieldObject> objects = applicationContext.getLevel().getNotEmptyFieldObjects();
         FieldDimension dimension = applicationContext.getLevel().getFieldDimension();
         int componentWidth = getWidth() / dimension.getWidth() + 1;
         int componentHeight = getHeight() / dimension.getHeight();

@@ -1,18 +1,19 @@
 package ui;
 
-import context.ApplicationContext;
+import command.ChangeLevelCommand;
 import enums.LevelID;
 import enums.UIColor;
-import handler.ChangeLevelHandler;
-import handler.ExitHandler;
-import controller.GameController;
+import enums.event.UIEvent;
+import observer.UIEventPublisher;
+import observer.UIEventSubscriber;
 import util.uiUtil.ImageFactory;
 import util.uiUtil.UIUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.LinkedList;
 
-public final class MainWindow extends JFrame {
+public final class MainWindow extends JFrame implements UIEventPublisher {
 
     private static final int WIDTH = 480;
     private static final int HEIGHT = 320;
@@ -30,18 +31,10 @@ public final class MainWindow extends JFrame {
 
     private final JLabel logoHolder = new JLabel();
 
-    private final ExitHandler exitHandler;
-    private final GameController gameController;
-//    private final ApplicationContext applicationContext;
-    private final ChangeLevelHandler changeLevelHandler;
+    private final java.util.List<UIEventSubscriber> UIEventSubscribers = new LinkedList<>();
 
-    public MainWindow(ApplicationContext applicationContext, ExitHandler exitHandler,
-                      GameController gameController, ChangeLevelHandler changeLevelHandler) {
-//        this.applicationContext = applicationContext;
+    public MainWindow(ChangeLevelCommand changeLevelCommand) {
         this.levelComboBox = new JComboBox<>();
-        this.exitHandler = exitHandler;
-        this.gameController = gameController;
-        this.changeLevelHandler = changeLevelHandler;
         frameTuning();
         configRootPanel();
         configLeftPanel();
@@ -49,7 +42,7 @@ public final class MainWindow extends JFrame {
         configExitButton();
         configPlayButton();
         configSettingsButton();
-        configLevelComboBox();
+        configLevelComboBox(changeLevelCommand);
         configLogoHolder();
         constructWindow();
     }
@@ -93,7 +86,7 @@ public final class MainWindow extends JFrame {
     }
 
     @SuppressWarnings("unchecked")
-    private void configLevelComboBox() {
+    private void configLevelComboBox(ChangeLevelCommand changeLevelCommand) {
         for (LevelID levelID : LevelID.values()) {
             levelComboBox.addItem(levelID.getId());
         }
@@ -105,7 +98,7 @@ public final class MainWindow extends JFrame {
             if (source.equals(levelComboBox)) {
                 JComboBox<String> box = (JComboBox<String>) source;
                 String item = (String) box.getSelectedItem();
-                changeLevelHandler.change(item);
+                changeLevelCommand.change(item);
             }
         });
     }
@@ -121,12 +114,12 @@ public final class MainWindow extends JFrame {
     }
 
     private void configPlayButton() {
-        playButton.addActionListener(e -> gameController.start());
+        playButton.addActionListener(e -> notifySubscribers(UIEvent.START));
         playButton.setFont(FONT);
     }
 
     private void configExitButton() {
-        exitButton.addActionListener(e -> exitHandler.exit(this));
+        exitButton.addActionListener(e -> notifySubscribers(UIEvent.EXIT));
         exitButton.setFont(FONT);
     }
 
@@ -161,4 +154,20 @@ public final class MainWindow extends JFrame {
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setFocusable(true);
     }
+
+    @Override
+    public void subscribe(UIEventSubscriber UIEventSubscriber) {
+        UIEventSubscribers.add(UIEventSubscriber);
+    }
+
+    @Override
+    public void unsubscribe(UIEventSubscriber UIEventSubscriber) {
+        UIEventSubscribers.remove(UIEventSubscriber);
+    }
+
+    @Override
+    public void notifySubscribers(UIEvent uiEvent) {
+        UIEventSubscribers.forEach(subscriber -> subscriber.react(uiEvent));
+    }
+
 }

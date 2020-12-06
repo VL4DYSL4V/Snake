@@ -6,5 +6,7 @@ public interface GameController {
 
     void start();
 
+    void stop();
+
     void moveSnake(Direction direction);
 }
