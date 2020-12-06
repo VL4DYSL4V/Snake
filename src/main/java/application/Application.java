@@ -1,6 +1,5 @@
 package application;
 
-import command.*;
 import context.ApplicationContext;
 import controller.GameControllerImpl;
 import eventHandler.GameEventHandler;
@@ -17,9 +16,7 @@ public final class Application {
     public Application() {
         ApplicationContext applicationContext = new ApplicationContext();
 
-        ChangeLevelCommand changeLevelCommand = new ChangeLevelCommandImpl(applicationContext);
-
-        MainWindow mainWindow = new MainWindow(changeLevelCommand);
+        MainWindow mainWindow = new MainWindow();
         EndOfGameFrame endOfGameFrame = new EndOfGameFrame();
         GameFrame gameFrame = new GameFrame(applicationContext);
 
@@ -32,8 +29,10 @@ public final class Application {
         gameFrame.subscribe(uiEventHandler);
         endOfGameFrame.subscribe(uiEventHandler);
 
-        GameEventHandler gameEventHandler = new GameEventHandler(windowHolder);
+        GameEventHandler gameEventHandler = new GameEventHandler(windowHolder, gameController, applicationContext);
         gameController.subscribe(gameEventHandler);
+        gameFrame.subscribe(gameEventHandler);
+        mainWindow.subscribe(gameEventHandler);
     }
 
     public void start() {

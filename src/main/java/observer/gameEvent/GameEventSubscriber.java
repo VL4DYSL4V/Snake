@@ -1,6 +1,6 @@
-package observer;
+package observer.gameEvent;
 
-import enums.event.GameEvent;
+import event.GameEvent;
 
 public interface GameEventSubscriber {
 

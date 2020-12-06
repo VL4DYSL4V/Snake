@@ -9,6 +9,7 @@ import java.time.LocalTime;
 import java.util.LinkedList;
 import java.util.List;
 
+@Deprecated
 public final class LevelConstructorImpl implements LevelConstructor {
 
     @Override

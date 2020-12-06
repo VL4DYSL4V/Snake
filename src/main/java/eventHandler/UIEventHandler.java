@@ -2,9 +2,8 @@ package eventHandler;
 
 import context.ApplicationContext;
 import controller.GameController;
-import enums.Direction;
 import enums.event.UIEvent;
-import observer.UIEventSubscriber;
+import observer.uiEvent.UIEventSubscriber;
 import ui.WindowHolder;
 
 public final class UIEventHandler implements UIEventSubscriber {
@@ -22,18 +21,6 @@ public final class UIEventHandler implements UIEventSubscriber {
     @Override
     public void react(UIEvent uiEvent) {
         switch (uiEvent){
-            case UP_PRESSED:
-                gameController.moveSnake(Direction.UP);
-                break;
-            case DOWN_PRESSED:
-                gameController.moveSnake(Direction.DOWN);
-                break;
-            case RIGHT_PRESSED:
-                gameController.moveSnake(Direction.RIGHT);
-                break;
-            case LEFT_PRESSED:
-                gameController.moveSnake(Direction.LEFT);
-                break;
             case RETURNING_TO_MENU:
                 gameController.stop();
                 applicationContext.restoreLastLevel();

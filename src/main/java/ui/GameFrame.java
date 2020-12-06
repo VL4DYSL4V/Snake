@@ -3,8 +3,11 @@ package ui;
 import context.ApplicationContext;
 import enums.UIColor;
 import enums.event.UIEvent;
-import observer.UIEventPublisher;
-import observer.UIEventSubscriber;
+import event.GameEvent;
+import observer.gameEvent.GameEventPublisher;
+import observer.gameEvent.GameEventSubscriber;
+import observer.uiEvent.UIEventPublisher;
+import observer.uiEvent.UIEventSubscriber;
 import util.uiUtil.ImageFactory;
 import util.uiUtil.UIUtils;
 
@@ -13,9 +16,11 @@ import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
-public final class GameFrame extends JFrame implements UIEventPublisher {
+public final class GameFrame extends JFrame implements UIEventPublisher, GameEventPublisher {
 
     private static final int WIDTH = 900;
     private static final int HEIGHT = 900;
@@ -33,6 +38,8 @@ public final class GameFrame extends JFrame implements UIEventPublisher {
     private final ApplicationContext applicationContext;
 
     private final java.util.List<UIEventSubscriber> UIEventSubscribers = new LinkedList<>();
+    private final java.util.List<GameEventSubscriber> gameEventSubscribers = new LinkedList<>();
+    private final Map<String, GameEvent> gameEventMap = new HashMap<>();
 
     public GameFrame(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
@@ -45,6 +52,14 @@ public final class GameFrame extends JFrame implements UIEventPublisher {
         configScoreLabel();
         configTimeLabel();
         constructWindow();
+        setupGameEventMap();
+    }
+
+    private void setupGameEventMap(){
+        gameEventMap.put("leftPressed", GameEvent.leftPressed());
+        gameEventMap.put("rightPressed", GameEvent.rightPressed());
+        gameEventMap.put("upPressed", GameEvent.upPressed());
+        gameEventMap.put("downPressed", GameEvent.downPressed());
     }
 
     @Override
@@ -62,22 +77,37 @@ public final class GameFrame extends JFrame implements UIEventPublisher {
         UIEventSubscribers.forEach(subscriber ->subscriber.react(uiEvent));
     }
 
+    @Override
+    public void subscribe(GameEventSubscriber gameEventSubscriber) {
+        gameEventSubscribers.add(gameEventSubscriber);
+    }
+
+    @Override
+    public void unsubscribe(GameEventSubscriber gameEventSubscriber) {
+        gameEventSubscribers.remove(gameEventSubscriber);
+    }
+
+    @Override
+    public void notifySubscribers(GameEvent gameEvent) {
+        gameEventSubscribers.forEach(gameEventSubscriber -> gameEventSubscriber.react(gameEvent));
+    }
+
     private final class MoveSnakeInvoker extends KeyAdapter {
 
         @Override
         public void keyPressed(KeyEvent e) {
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_UP:
-                    notifySubscribers(UIEvent.UP_PRESSED);
+                    notifySubscribers(gameEventMap.get("upPressed"));
                     break;
                 case KeyEvent.VK_DOWN:
-                    notifySubscribers(UIEvent.DOWN_PRESSED);
+                    notifySubscribers(gameEventMap.get("downPressed"));
                     break;
                 case KeyEvent.VK_LEFT:
-                    notifySubscribers(UIEvent.LEFT_PRESSED);
+                    notifySubscribers(gameEventMap.get("leftPressed"));
                     break;
                 case KeyEvent.VK_RIGHT:
-                    notifySubscribers(UIEvent.RIGHT_PRESSED);
+                    notifySubscribers(gameEventMap.get("rightPressed"));
                     break;
             }
         }

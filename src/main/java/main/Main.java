@@ -1,21 +1,25 @@
 package main;
 
 import application.Application;
-import entity.Level;
-import enums.LevelID;
-import levelConstructor.LevelConstructor;
-import levelConstructor.LevelConstructorImpl;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import java.io.File;
+//import entity.Level;
+//import enums.LevelID;
+//import levelConstructor.LevelConstructor;
+//import levelConstructor.LevelConstructorImpl;
+//
+//import javax.xml.bind.JAXBContext;
+//import javax.xml.bind.JAXBException;
+//import javax.xml.bind.Marshaller;
+//import java.io.File;
 
 public final class Main {
 
-    public static void main(String[] args) throws JAXBException {
+    public static void main(String[] args) {
         Application application = new Application();
         application.start();
+//
+    }
+
+//    private static void writeLevels() throws JAXBException{
 //        LevelConstructor levelConstructor = new LevelConstructorImpl();
 //        Level one = levelConstructor.constructFirstLevel();
 //        Level two = levelConstructor.constructSecondLevel();
@@ -29,6 +33,5 @@ public final class Main {
 //        marshaller.marshal(two, f2);
 //        Level level1 = (Level) jaxbContext.createUnmarshaller().unmarshal(f1);
 //        Level level2 = (Level) jaxbContext.createUnmarshaller().unmarshal(f2);
-    }
-
+//    }
 }

@@ -1,4 +1,4 @@
-package observer;
+package observer.uiEvent;
 
 import enums.event.UIEvent;
 

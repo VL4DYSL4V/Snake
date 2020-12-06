@@ -6,17 +6,15 @@ import entity.FieldObject;
 import entity.Level;
 import enums.Direction;
 import enums.MapObject;
-import enums.event.GameEvent;
+import event.GameEvent;
 import exception.EndOfGameException;
 import exception.TimeIsUpException;
-import observer.GameEventPublisher;
-import observer.GameEventSubscriber;
+import observer.gameEvent.GameEventPublisher;
+import observer.gameEvent.GameEventSubscriber;
 import util.coordinateUtil.CoordinateUtils;
 
 import javax.annotation.Nullable;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -32,12 +30,19 @@ public final class GameControllerImpl implements GameController, GameEventPublis
     private volatile boolean gameOver = false;
 
     private final List<GameEventSubscriber> gameEventSubscribers = new LinkedList<>();
+    private final Map<String, GameEvent> eventMap = new HashMap<>();
 
     public GameControllerImpl(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
+        setupEventMap();
     }
 
-    public void spawnFood() {
+    private void setupEventMap(){
+        eventMap.put("gameOver", GameEvent.gameOverEvent());
+        eventMap.put("levelStateChanged", GameEvent.levelStateChangedEvent());
+    }
+
+    private void spawnFood() {
         FieldObject fieldObject = randomFood();
         if (fieldObject != null) {
             applicationContext.getLevel().setObject(fieldObject);
@@ -120,7 +125,7 @@ public final class GameControllerImpl implements GameController, GameEventPublis
         }
     }
 
-    public void turnSnake(Direction direction) throws EndOfGameException {
+    private void turnSnake(Direction direction) throws EndOfGameException {
         if (applicationContext.getLevel().snakeDirectionIsOppositeToCurrent(direction)
                 || direction == applicationContext.getLevel().getSnakeCurrentDirection()) {
             return;
@@ -132,7 +137,7 @@ public final class GameControllerImpl implements GameController, GameEventPublis
         move(direction);
     }
 
-    public void moveInCurrentDirection() throws EndOfGameException {
+    private void moveInCurrentDirection() throws EndOfGameException {
         Direction currentDirection = applicationContext.getLevel().getSnakeCurrentDirection();
         if (!CoordinateUtils.canWalkInThatDirection(applicationContext.getLevel().snakeHeadCoordinates(),
                 applicationContext.getLevel().getFieldDimension(), currentDirection)) {
@@ -149,12 +154,12 @@ public final class GameControllerImpl implements GameController, GameEventPublis
                         || applicationContext.getLevel().snakeDirectionIsOppositeToCurrent(direction)
                         || applicationContext.getLevel().getSnakeCurrentDirection() == direction)) {
                     turnSnake(direction);
-                    notifySubscribers(GameEvent.LEVEL_STATE_CHANGED);
+                    notifySubscribers(eventMap.get("levelStateChanged"));
                     turningPerformed = true;
                 }
             } catch (EndOfGameException e) {
                 stop();
-                notifySubscribers(GameEvent.GAME_OVER);
+                notifySubscribers(eventMap.get("gameOver"));
             }
         }
     }
@@ -170,9 +175,9 @@ public final class GameControllerImpl implements GameController, GameEventPublis
                     }
                 } catch (EndOfGameException e) {
                     stop();
-                    notifySubscribers(GameEvent.GAME_OVER);
+                    notifySubscribers(eventMap.get("gameOver"));
                 }
-                notifySubscribers(GameEvent.LEVEL_STATE_CHANGED);
+                notifySubscribers(eventMap.get("levelStateChanged"));
             }
         };
 
@@ -180,23 +185,25 @@ public final class GameControllerImpl implements GameController, GameEventPublis
                 .scheduleAtFixedRate(crawling, 2, 250, TimeUnit.MILLISECONDS);
     }
 
-    public void stopAutomaticCrawling() {
+    private void stopAutomaticCrawling() {
         if (crawlingFuture != null) {
             crawlingFuture.cancel(false);
         }
     }
 
-    public void startFruitSpawn() {
+    private void startFruitSpawn() {
         Runnable fruitSpawn = () -> {
-            spawnFood();
-            notifySubscribers(GameEvent.LEVEL_STATE_CHANGED);
+            synchronized (applicationContext) {
+                spawnFood();
+                notifySubscribers(eventMap.get("levelStateChanged"));
+            }
         };
         foodSpawnFuture = applicationContext.getScheduledExecutorService()
                 .scheduleAtFixedRate(fruitSpawn, 2,
                         applicationContext.getLevel().getSpawnFrequency(), TimeUnit.SECONDS);
     }
 
-    public void stopFruitSpawn() {
+    private void stopFruitSpawn() {
         if (foodSpawnFuture != null) {
             foodSpawnFuture.cancel(false);
         }
@@ -209,16 +216,16 @@ public final class GameControllerImpl implements GameController, GameEventPublis
                     applicationContext.getLevel().decrementPlayTime(1);
                 } catch (TimeIsUpException e) {
                     stop();
-                    notifySubscribers(GameEvent.GAME_OVER);
+                    notifySubscribers(eventMap.get("gameOver"));
                 }
-                notifySubscribers(GameEvent.LEVEL_STATE_CHANGED);
+                notifySubscribers(eventMap.get("levelStateChanged"));
             }
         };
         countDownFuture = applicationContext.getScheduledExecutorService()
                 .scheduleAtFixedRate(countdown, 2, 1, TimeUnit.SECONDS);
     }
 
-    public void stopCountDown() {
+    private void stopCountDown() {
         if (countDownFuture != null) {
             countDownFuture.cancel(false);
         }

@@ -2,8 +2,8 @@ package ui;
 
 import enums.UIColor;
 import enums.event.UIEvent;
-import observer.UIEventPublisher;
-import observer.UIEventSubscriber;
+import observer.uiEvent.UIEventPublisher;
+import observer.uiEvent.UIEventSubscriber;
 import util.uiUtil.UIUtils;
 
 import javax.swing.*;

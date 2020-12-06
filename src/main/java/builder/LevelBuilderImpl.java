@@ -7,6 +7,7 @@ import java.time.LocalTime;
 import java.util.LinkedList;
 import java.util.List;
 
+@Deprecated
 public final class LevelBuilderImpl implements LevelBuilder {
 
     private FieldDimension fieldDimension = new FieldDimension(0, 0);

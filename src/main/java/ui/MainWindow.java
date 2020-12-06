@@ -1,11 +1,13 @@
 package ui;
 
-import command.ChangeLevelCommand;
 import enums.LevelID;
 import enums.UIColor;
 import enums.event.UIEvent;
-import observer.UIEventPublisher;
-import observer.UIEventSubscriber;
+import event.GameEvent;
+import observer.gameEvent.GameEventPublisher;
+import observer.gameEvent.GameEventSubscriber;
+import observer.uiEvent.UIEventPublisher;
+import observer.uiEvent.UIEventSubscriber;
 import util.uiUtil.ImageFactory;
 import util.uiUtil.UIUtils;
 
@@ -13,7 +15,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.LinkedList;
 
-public final class MainWindow extends JFrame implements UIEventPublisher {
+public final class MainWindow extends JFrame implements UIEventPublisher, GameEventPublisher {
 
     private static final int WIDTH = 480;
     private static final int HEIGHT = 320;
@@ -32,8 +34,9 @@ public final class MainWindow extends JFrame implements UIEventPublisher {
     private final JLabel logoHolder = new JLabel();
 
     private final java.util.List<UIEventSubscriber> UIEventSubscribers = new LinkedList<>();
+    private final java.util.List<GameEventSubscriber> gameEventSubscribers = new LinkedList<>();
 
-    public MainWindow(ChangeLevelCommand changeLevelCommand) {
+    public MainWindow() {
         this.levelComboBox = new JComboBox<>();
         frameTuning();
         configRootPanel();
@@ -42,7 +45,7 @@ public final class MainWindow extends JFrame implements UIEventPublisher {
         configExitButton();
         configPlayButton();
         configSettingsButton();
-        configLevelComboBox(changeLevelCommand);
+        configLevelComboBox();
         configLogoHolder();
         constructWindow();
     }
@@ -86,7 +89,7 @@ public final class MainWindow extends JFrame implements UIEventPublisher {
     }
 
     @SuppressWarnings("unchecked")
-    private void configLevelComboBox(ChangeLevelCommand changeLevelCommand) {
+    private void configLevelComboBox() {
         for (LevelID levelID : LevelID.values()) {
             levelComboBox.addItem(levelID.getId());
         }
@@ -98,7 +101,7 @@ public final class MainWindow extends JFrame implements UIEventPublisher {
             if (source.equals(levelComboBox)) {
                 JComboBox<String> box = (JComboBox<String>) source;
                 String item = (String) box.getSelectedItem();
-                changeLevelCommand.change(item);
+                notifySubscribers(GameEvent.changeOfLevelEvent(LevelID.of(item)));
             }
         });
     }
@@ -170,4 +173,18 @@ public final class MainWindow extends JFrame implements UIEventPublisher {
         UIEventSubscribers.forEach(subscriber -> subscriber.react(uiEvent));
     }
 
+    @Override
+    public void subscribe(GameEventSubscriber gameEventSubscriber) {
+        gameEventSubscribers.add(gameEventSubscriber);
+    }
+
+    @Override
+    public void unsubscribe(GameEventSubscriber gameEventSubscriber) {
+        gameEventSubscribers.remove(gameEventSubscriber);
+    }
+
+    @Override
+    public void notifySubscribers(GameEvent gameEvent) {
+        gameEventSubscribers.forEach(gameEventSubscriber -> gameEventSubscriber.react(gameEvent));
+    }
 }
