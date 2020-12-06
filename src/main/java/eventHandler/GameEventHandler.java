@@ -54,6 +54,7 @@ public class GameEventHandler implements GameEventSubscriber {
                 } catch (CannotAccessLevelException e) {
                     e.printStackTrace();
                 }
+                break;
         }
     }
 }
